@@ -27,6 +27,9 @@ let lineParam = 'gdp';
 let highlighted = '';
 let selected;
 
+let minYear = 1800;
+let maxYear = 2020;
+
 const x = d3.scaleLinear().range([margin * 2, width - margin]);
 const y = d3.scaleLinear().range([height - margin, margin]);
 
@@ -76,7 +79,50 @@ loadData().then(data => {
         updateBar();
     });
 
+    d3.select('#p').on('change', function () {
+        lineParam = d3.select(this).property('value');
+        updateLinearPlot();
+    });
+
     function updateBar() {
+        return;
+    }
+
+    function updateLinearPlot() {
+        if (selected) {
+
+            d3.select('.country-name').text(selected);
+
+            let country_data = data.filter(d => d['country'] == selected).map(d => d[lineParam])[0];
+
+            let dict_data = [];
+            for (let i = minYear; i < maxYear; i++)
+                dict_data.push({ 'year': i, 'value': parseFloat(country_data[i]) })
+
+            x.domain([minYear, maxYear]);
+            xLineAxis.call(d3.axisBottom(x));
+
+            let yRange = d3.values(dict_data).map(d => +d['value']);
+            y.domain([d3.min(yRange), d3.max(yRange) * 1.05]);
+            console.log(yRange)
+            console.log(d3.min(yRange))
+            console.log(d3.max(yRange))
+            yLineAxis.call(d3.axisLeft(y));
+
+            lineChart.append('path').attr('class', 'line').datum(dict_data)
+                .enter()
+                .append('path');
+
+            lineChart.selectAll('.line').datum(dict_data)
+                .attr('fill', 'none')
+                .attr('stroke', '#1f77b4')
+                .attr('stroke-width', 2)
+                .attr('d', d3.line()
+                    .x(d => x(d.year))
+                    .y(d => y(d.value))
+                );
+        }
+
         return;
     }
 
@@ -84,11 +130,11 @@ loadData().then(data => {
         d3.select('.year').text(year);
 
         let xRange = data.map(d => +d[xParam][year]);
-        x.domain([d3.min(xRange) * 0.9, d3.max(xRange) * 1.1]);
+        x.domain([d3.min(xRange), d3.max(xRange) * 1.05]);
         xAxis.call(d3.axisBottom(x));
 
         let yRange = data.map(d => +d[yParam][year]);
-        y.domain([d3.min(yRange) * 0.9, d3.max(yRange) * 1.1]);
+        y.domain([d3.min(yRange), d3.max(yRange) * 1.05]);
         yAxis.call(d3.axisLeft(y));
 
         let rRange = data.map(d => +d[rParam][year]);
@@ -105,12 +151,14 @@ loadData().then(data => {
             .style('fill', d => colorScale(d['region']))
             .style('opacity', 0.75);
 
-        scatterPlot.selectAll('circle').on('click', function () {
+        scatterPlot.selectAll('circle').on('click', function (selected_circle) {
+            selected = selected_circle['country'];
             d3.selectAll('circle').style('stroke-width', 1);
             d3.selectAll('circle').style('opacity', 0.75);
             this.parentNode.appendChild(this);
             d3.select(this).style('stroke-width', 3);
             d3.select(this).style('opacity', 1);
+            updateLinearPlot();
         });
 
         return;
@@ -118,6 +166,7 @@ loadData().then(data => {
 
     updateBar();
     updateScatterPlot();
+    updateLinearPlot()
 });
 
 
