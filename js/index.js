@@ -81,6 +81,38 @@ loadData().then(data => {
     }
 
     function updateScatterPlot() {
+        d3.select('.year').text(year);
+
+        let xRange = data.map(d => +d[xParam][year]);
+        x.domain([d3.min(xRange) * 0.9, d3.max(xRange) * 1.1]);
+        xAxis.call(d3.axisBottom(x));
+
+        let yRange = data.map(d => +d[yParam][year]);
+        y.domain([d3.min(yRange) * 0.9, d3.max(yRange) * 1.1]);
+        yAxis.call(d3.axisLeft(y));
+
+        let rRange = data.map(d => +d[rParam][year]);
+        radiusScale.domain([d3.min(rRange), d3.max(rRange)]);
+
+        scatterPlot.selectAll('circle').data(data)
+            .enter()
+            .append('circle')
+
+        scatterPlot.selectAll('circle').data(data)
+            .attr('cx', d => x(d[xParam][year]))
+            .attr('cy', d => y(d[yParam][year]))
+            .attr('r', d => radiusScale(d[rParam][year]))
+            .style('fill', d => colorScale(d['region']))
+            .style('opacity', 0.75);
+
+        scatterPlot.selectAll('circle').on('click', function () {
+            d3.selectAll('circle').style('stroke-width', 1);
+            d3.selectAll('circle').style('opacity', 0.75);
+            this.parentNode.appendChild(this);
+            d3.select(this).style('stroke-width', 3);
+            d3.select(this).style('opacity', 1);
+        });
+
         return;
     }
 
