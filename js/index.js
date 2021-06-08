@@ -216,11 +216,10 @@ loadData().then(data => {
         scatterPlot.selectAll('circle').on('click', function (selectedCircle) {
             selectedCountry = selectedCircle['country'];
             d3.selectAll('circle').style('stroke-width', 1);
-            d3.selectAll('circle').filter(d => d['country'] == selectedCountry).style('stroke-width', 3);
-
+            this.parentNode.appendChild(this);
+            d3.select(this).style('stroke-width', 3);
             updateLinearPlot();
         });
-
 
         return;
     }
